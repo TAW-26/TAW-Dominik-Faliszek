@@ -1,0 +1,104 @@
+.station-sidebar {
+  width: 320px;
+  background: white;
+  border-left: 1px solid #e0e0e0;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.sidebar-header {
+  padding: 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.sidebar-header h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+}
+
+.capacity-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  background: #e3f2fd;
+  color: #0d47a1;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.return-section {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.btn-large {
+  width: 100%;
+  padding: 15px;
+  font-size: 16px;
+  background-color: #28a745;
+}
+
+.btn-large:hover {
+  background-color: #218838;
+}
+
+.error-message {
+  color: #dc3545;
+  background: #f8d7da;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.device-list {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.device-list h4 {
+  margin-top: 0;
+  color: #555;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.device-list-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.device-list-item:hover {
+  background: #f0f7ff;
+  border-color: #007bff;
+}
+
+.device-list-item .icon {
+  font-size: 24px;
+  margin-right: 15px;
+}
+
+.device-list-item .id {
+  font-family: monospace;
+  color: #666;
+}
+
+.empty-state {
+  color: #999;
+  text-align: center;
+  margin-top: 40px;
+}

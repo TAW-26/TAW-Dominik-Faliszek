@@ -14,14 +14,28 @@ class StationController {
 
     private initializeRoutes() {
         this.router.get(`${this.path}`, authMiddleware(), this.getAll);
+        this.router.get(`${this.path}/available`, authMiddleware(), this.getAvailable);
         this.router.post(`${this.path}/create`, authMiddleware(['admin']), this.createNewStation);
         this.router.delete(`${this.path}/:id`, authMiddleware(['admin']), this.delete);
         this.router.patch(`${this.path}/:id`, authMiddleware(['admin']), this.update);
     }
 
     private getAll = async (req: Request, res: Response) => {
-        const stations = await this.stationService.getStations();
-        res.status(200).json(stations);
+        try {
+            const stations = await this.stationService.getStations();
+            res.status(200).json(stations);
+        } catch (error: any) {
+            res.status(500).json({ message: 'Błąd podczas pobierania stacji.', error: error.message });
+        }
+    };
+
+    private getAvailable = async (req: Request, res: Response) => {
+        try {
+            const stations = await this.stationService.getAvailableStations();
+            res.status(200).json(stations);
+        } catch (error: any) {
+            res.status(500).json({ message: 'Błąd podczas pobierania dostępnych stacji.', error: error.message });
+        }
     };
 
     private createNewStation = async (req: Request, res: Response) => {
