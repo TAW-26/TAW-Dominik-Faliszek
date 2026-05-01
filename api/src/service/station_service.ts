@@ -12,6 +12,13 @@ class StationService {
         return await StationModel.find();
     }
 
+    public async getAvailableStations(): Promise<any> {
+        return await StationModel.find({
+            $expr: { $lt: ["$device_count", "$capacity"] },
+            status: "active"
+        });
+    }
+
     public async deleteStation(stationId: string): Promise<void> {
         const station = await StationModel.findById(stationId);
         if (!station) throw new Error('Station not found');

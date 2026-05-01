@@ -1,0 +1,9 @@
+.form-group label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+.form-group input {
+    margin-top: 5px;
+}

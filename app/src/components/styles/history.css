@@ -1,0 +1,21 @@
+.history-table-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.badge.rent {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.badge.return {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
