@@ -16,6 +16,8 @@ class UserController {
         this.router.post(`${this.path}/register`, this.register);
         this.router.post(`${this.path}/registerAdmin`, authMiddleware(['admin']), this.registerAdmin);
         this.router.post(`${this.path}/login`, this.login);
+        this.router.post(`${this.path}/oauth`, this.googleLogin);
+        this.router.get(`${this.path}/name/all`, authMiddleware(['admin']), this.getUserNames);
     }
 
     private register = async (request: Request, response: Response) => {
@@ -45,5 +47,30 @@ class UserController {
             response.status(401).json({ error: error.message });
         }
     };
+
+    private googleLogin = async (request: Request, response: Response) => {
+        try {
+            const { credential } = request.body;
+
+            if (!credential) {
+                return response.status(400).json({ error: 'Google credential token is required' });
+            }
+
+            const token = await this.userService.loginWithGoogle(credential);
+            response.status(200).json({ token });
+        } catch (error: any) {
+            response.status(401).json({ error: error.message });
+        }
+    };
+
+    private getUserNames = async (request: Request, response: Response) => {
+        try {
+            const users = await this.userService.getUserNames();
+            response.status(200).json(users);
+        } catch (error: any) {
+            response.status(401).json({ error: error.message });
+        }
+    };
+
 }
 export default UserController;

@@ -20,7 +20,6 @@ class DeviceService {
     }
 
     public async bindToStation(deviceId: string, stationId: string): Promise<void> {
-        // ... (keep as is)
         const device = await DeviceModel.findById(deviceId);
 
         if (!device || device.binding_type?.toString() === 'user') {
