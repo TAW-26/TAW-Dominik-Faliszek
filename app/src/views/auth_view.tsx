@@ -54,11 +54,11 @@ export default function AuthView() {
     }
   };
 
-  const handleOAuthSuccess = async (credentialResponse: CredentialResponse) => {
+const handleOAuthSuccess = async (credentialResponse: CredentialResponse) => {
       try {
         const data = await apiFetch('/api/user/oauth', {
           method: 'POST',
-          body: JSON.stringify({ token: credentialResponse.credential, provider: 'google' })
+          body: JSON.stringify({ credential: credentialResponse.credential })
         });
 
         const decoded: any = jwtDecode(data.token);

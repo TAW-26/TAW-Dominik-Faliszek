@@ -18,12 +18,18 @@ interface Station {
   name: string;
 }
 
+interface User {
+  _id: string;
+  username: string;
+}
+
 export default function DeviceManagement() {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | undefined>(undefined);
 
   const { data: devices, loading, error, refetch } = useApi<Device[]>('/api/device', []);
   const { data: stations } = useApi<Station[]>('/api/station', []);
+  const { data: users } = useApi<User[]>('/api/user/name/all', []);
 
   const handleSave = async (formData: any) => {
     try {
@@ -84,6 +90,12 @@ export default function DeviceManagement() {
     return station ? `${station.name} (${bindingId})` : `Nieznana stacja (${bindingId})`;
   };
 
+  const getUserLabel = (bindingId?: string) => {
+    if (!bindingId) return 'Wypożyczony (Nieznany użytkownik)';
+    const user = users.find(u => u._id === bindingId);
+    return user ? `Wypożyczony (${user.username} | ${bindingId})` : `Wypożyczony (${bindingId})`;
+  };
+
   return (
     <div className="admin-panel">
       <div className="panel-header">
@@ -120,7 +132,7 @@ export default function DeviceManagement() {
                   {dev.binding_type === 'station'
                     ? getStationLabel(dev.current_binding)
                     : dev.binding_type === 'user'
-                      ? 'Wypożyczony (Użytkownik)'
+                      ? getUserLabel(dev.current_binding)
                       : dev.status === 'maintenance'
                         ? 'W serwisie'
                         : dev.status === 'out_of_order'
