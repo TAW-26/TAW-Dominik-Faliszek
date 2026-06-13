@@ -1,3 +1,4 @@
+import { config } from './../config';
 const BASE_URL = 'http://localhost:3100';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
@@ -8,7 +9,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     ...options.headers,
   };
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
+  const response = await fetch(`${config.databaseURL}${endpoint}`, { ...options, headers });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));

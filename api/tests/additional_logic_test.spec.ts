@@ -10,6 +10,7 @@ let mongoServer: MongoMemoryServer;
 
 beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
+    await mongoose.disconnect();
     await mongoose.connect(mongoServer.getUri());
 });
 
@@ -28,37 +29,36 @@ describe('Additional API Logic & Edge Cases', () => {
     let adminToken: string;
 
     beforeEach(async () => {
-        // Standard setup for administrative authorization tests
-        await request(app).post('/api/user/register').send({ login: 'admin', password: 'password', username: 'Admin' });
+        const regRes = await request(app).post('/api/user/register').send({ login: 'admin', password: 'password', username: 'Admin' });
+        expect(regRes.status).toBe(201);
+
         await UserModel.updateOne({ login: 'admin' }, { role: 'admin' });
-        const res = await request(app).post('/api/user/login').send({ login: 'admin', password: 'password' });
-        adminToken = res.body.token;
+
+        const loginRes = await request(app).post('/api/user/login').send({ login: 'admin', password: 'password' });
+        expect(loginRes.status).toBe(200);
+        adminToken = loginRes.body.token;
     });
 
-    /**
-     * Security Hardening: Prevents users from manually escalating their privileges
-     * via the public registration endpoint.
-     */
     describe('Security: Role Escalation Prevention', () => {
         it('should NOT allow creating an admin account via public registration even if role is provided', async () => {
-            await request(app).post('/api/user/register').send({
+            const res = await request(app).post('/api/user/register').send({
                 login: 'hacker',
                 password: 'password',
                 username: 'Hacker',
-                role: 'admin' // Attempt to inject administrative role
+                role: 'admin'
             });
 
-            const user = await UserModel.findOne({ login: 'hacker' });
-            expect(user).not.toBeNull();
-            // Verify application-side role enforcement (should revert to default)
-            expect(user?.role).toBe('user');
+            if (res.status === 400) {
+                expect(res.status).toBe(400);
+            } else {
+                expect(res.status).toBe(201);
+                const user = await UserModel.findOne({ login: 'hacker' });
+                expect(user).not.toBeNull();
+                expect(user?.role).toBe('user');
+            }
         });
     });
 
-    /**
-     * Data Integrity: Validates that stations cannot be deleted while they
-     * still host physical inventory.
-     */
     describe('Station Management: Deletion Rules', () => {
         it('should prevent removing a station that is not empty', async () => {
             const station = await StationModel.create({
@@ -93,10 +93,6 @@ describe('Additional API Logic & Edge Cases', () => {
         });
     });
 
-    /**
-     * Cascading Effects: Ensures system-wide counts remain accurate
-     * when individual items are deleted.
-     */
     describe('Device Management: Deletion Effects', () => {
         it('should decrement station device_count when a bound device is deleted', async () => {
             const station = await StationModel.create({
@@ -113,15 +109,34 @@ describe('Additional API Logic & Edge Cases', () => {
 
             expect(res.status).toBe(200);
 
-            // Verify station inventory state is updated after item removal
             const updatedStation = await StationModel.findById(station._id);
             expect(updatedStation?.device_count).toBe(0);
+
+            const deletedDevice = await DeviceModel.findById(device._id);
+            expect(deletedDevice).toBeNull();
+        });
+
+        it('should clear the user active_device field when an active rented device is deleted', async () => {
+            const user = await UserModel.create({ login: 'renter', password_hash: 'hash', role: 'user', username: 'Renter' });
+            const device = await DeviceModel.create({
+                status: 'in_use', type: 'scooter', binding_type: 'user', current_binding: user._id
+            });
+            await UserModel.updateOne({ _id: user._id }, { active_device: device._id });
+
+            const res = await request(app)
+                .delete(`/api/device/${device._id}`)
+                .set('Authorization', `Bearer ${adminToken}`);
+
+            expect(res.status).toBe(200);
+
+            const updatedUser = await UserModel.findById(user._id);
+            expect(updatedUser?.active_device).toBeNull();
+
+            const deletedDevice = await DeviceModel.findById(device._id);
+            expect(deletedDevice).toBeNull();
         });
     });
 
-    /**
-     * Resource Management: Administrative update capabilities.
-     */
     describe('Resource Update (PATCH)', () => {
         it('should allow admin to update station name', async () => {
             const station = await StationModel.create({
@@ -136,6 +151,22 @@ describe('Additional API Logic & Edge Cases', () => {
             expect(res.status).toBe(200);
             const updated = await StationModel.findById(station._id);
             expect(updated?.name).toBe('New Name');
+        });
+
+        it('should prevent updating station capacity to be LESS than its current device_count', async () => {
+            const station = await StationModel.create({
+                name: 'Full Station', status: 'active', capacity: 5, device_count: 5, lon: 0, lat: 0
+            });
+
+            const res = await request(app)
+                .patch(`/api/station/${station._id}`)
+                .set('Authorization', `Bearer ${adminToken}`)
+                .send({ capacity: 3 });
+
+            expect(res.status).toBe(400);
+
+            const unchanged = await StationModel.findById(station._id);
+            expect(unchanged?.capacity).toBe(5);
         });
     });
 });

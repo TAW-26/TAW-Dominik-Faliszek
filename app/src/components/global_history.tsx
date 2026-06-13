@@ -68,7 +68,6 @@ export default function GlobalHistory() {
                 <td>{record.stationName}</td>
               </tr>
             ))}
-            {/* Dodatkowa obsługa pustego stanu dla filtrów */}
             {filteredHistory.length === 0 && history.length > 0 && (
               <tr>
                 <td colSpan={5} style={{textAlign: 'center'}}>Brak wyników wyszukiwania dla: "{search}"</td>

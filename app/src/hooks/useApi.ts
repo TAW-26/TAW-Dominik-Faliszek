@@ -12,8 +12,9 @@ export function useApi<T>(endpoint: string, initialData: T) {
     try {
       const result = await apiFetch(endpoint);
       setData(result);
-    } catch (err: any) {
-      setError(err.message || 'Wystąpił nieoczekiwany błąd serwera.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd serwera.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
