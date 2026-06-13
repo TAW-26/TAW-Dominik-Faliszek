@@ -1,0 +1,23 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 9081
+positions:
+  filename: ./monitoring/positions.yaml
+clients:
+  - url: http://127.0.0.1:3101/loki/api/v1/push
+scrape_configs:
+  - job_name: api_errors
+    static_configs:
+      - targets:
+          - 127.0.0.1
+        labels:
+          job: api_errors
+          __path__: ./logs/error.log
+
+  - job_name: api_traffic
+    static_configs:
+      - targets:
+          - 127.0.0.1
+        labels:
+          job: api_traffic
+          __path__: ./logs/combined.log

@@ -1,0 +1,58 @@
+config:
+  target: "http://localhost:3100"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: "Faza 1: Rozgrzewka (5 req/s)"
+    - duration: 60
+      arrivalRate: 30
+      name: "Faza 2: Średnie obciążenie bazy (30 req/s)"
+    - duration: 30
+      arrivalRate: 100
+      name: "Faza 3: Skok obciążenia (100 req/s)"
+
+  variables:
+    testLogin: "ddd"
+    testPassword: "ddd"
+
+scenarios:
+  - name: "Typowy przepływ użytkownika: Logowanie -> Dostępne stacje -> Wszystkie stacje"
+    weight: 7
+    flow:
+      - post:
+          url: "/api/user/login"
+          json:
+            login: "{{ testLogin }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "token"
+
+      - get:
+          url: "/api/station/available"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+      - think: 2
+
+      - get:
+          url: "/api/station"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+  - name: "Szybki strzał: Logowanie -> Wszystkie stacje"
+    weight: 3
+    flow:
+      - post:
+          url: "/api/user/login"
+          json:
+            login: "{{ testLogin }}"
+            password: "{{ testPassword }}"
+          capture:
+            - json: "$.token"
+              as: "token"
+
+      - get:
+          url: "/api/station"
+          headers:
+            Authorization: "Bearer {{ token }}"
