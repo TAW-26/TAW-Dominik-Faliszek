@@ -31,8 +31,14 @@ class StationService {
     }
 
     public async updateStation(stationId: string, updateData: Partial<StationData>): Promise<void> {
-        const station = await StationModel.findByIdAndUpdate(stationId, updateData);
+        const station = await StationModel.findById(stationId);
         if (!station) throw new Error('Station not found');
+
+        if (updateData.capacity !== undefined && updateData.capacity < station.device_count) {
+            throw new Error('Capacity cannot be less than current device count');
+        }
+
+        await StationModel.findByIdAndUpdate(stationId, updateData);
     }
 }
 export default StationService;

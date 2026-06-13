@@ -6,10 +6,6 @@ import UserModel from '../src/schema/user_schema';
 
 let mongoServer: MongoMemoryServer;
 
-/**
- * Global Setup: Initializes an isolated in-memory MongoDB instance
- * to ensure tests run in a clean environment without affecting external databases.
- */
 beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
     const uri = mongoServer.getUri();
@@ -17,17 +13,11 @@ beforeAll(async () => {
     await mongoose.connect(uri);
 });
 
-/**
- * Global Teardown: Cleans up the database connection and stops the in-memory server.
- */
 afterAll(async () => {
     await mongoose.disconnect();
     await mongoServer.stop();
 });
 
-/**
- * Per-Test Setup: Clears the User collection to prevent cross-test data pollution.
- */
 beforeEach(async () => {
     await UserModel.deleteMany({});
 });
@@ -40,9 +30,6 @@ describe('User API - Authentication and Registration', () => {
         username: 'Test User'
     };
 
-    /**
-     * Registration Flow Tests
-     */
     describe('POST /api/user/register', () => {
         it('should successfully register a new user with default role "user"', async () => {
             const res = await request(app)
@@ -72,9 +59,7 @@ describe('User API - Authentication and Registration', () => {
         });
     });
 
-    /**
-     * Authentication and Credential Validation Tests
-     */
+
     describe('POST /api/user/login', () => {
         beforeEach(async () => {
             await request(app).post('/api/user/register').send(testUser);
@@ -118,21 +103,16 @@ describe('User API - Authentication and Registration', () => {
         });
     });
 
-    /**
-     * Administrative Authorization Tests
-     */
     describe('POST /api/user/registerAdmin', () => {
         let adminToken: string;
         let regularUserToken: string;
 
         beforeEach(async () => {
-            // Setup an existing admin to test privileged registration
             await request(app).post('/api/user/register').send({ login: 'admin1', password: 'password', username: 'Admin1' });
             await UserModel.updateOne({ login: 'admin1' }, { role: 'admin' });
             const adminLoginRes = await request(app).post('/api/user/login').send({ login: 'admin1', password: 'password' });
             adminToken = adminLoginRes.body.token;
 
-            // Setup a regular user to test unauthorized access
             await request(app).post('/api/user/register').send(testUser);
             const userLoginRes = await request(app).post('/api/user/login').send({ login: testUser.login, password: testUser.password });
             regularUserToken = userLoginRes.body.token;

@@ -28,26 +28,17 @@ describe('Station API', () => {
     let adminToken: string;
     let userToken: string;
 
-    /**
-     * Context Setup: Creates both Admin and Regular user sessions
-     * to test role-based access control (RBAC).
-     */
     beforeEach(async () => {
-        // Setup: Admin credentials
         await request(app).post('/api/user/register').send({ login: 'admin', password: 'pass', username: 'Admin' });
         await UserModel.updateOne({ login: 'admin' }, { role: 'admin' });
         const adminRes = await request(app).post('/api/user/login').send({ login: 'admin', password: 'pass' });
         adminToken = adminRes.body.token;
 
-        // Setup: Regular User credentials
         await request(app).post('/api/user/register').send({ login: 'user', password: 'pass', username: 'User' });
         const userRes = await request(app).post('/api/user/login').send({ login: 'user', password: 'pass' });
         userToken = userRes.body.token;
     });
 
-    /**
-     * Access Control for Station Creation
-     */
     describe('POST /api/station/create', () => {
         const newStation = {
             name: 'Test Station',
@@ -83,9 +74,6 @@ describe('Station API', () => {
         });
     });
 
-    /**
-     * General Resource Access Tests
-     */
     describe('GET /api/station', () => {
         beforeEach(async () => {
             await StationModel.create({ name: 'Station A', status: 'active', capacity: 5, device_count: 0, lon: 0, lat: 0 });
@@ -106,6 +94,25 @@ describe('Station API', () => {
         it('should deny access if token is missing', async () => {
             const res = await request(app).get('/api/station');
             expect(res.status).toBe(401);
+        });
+    });
+
+    describe('GET /api/station/available', () => {
+        beforeEach(async () => {
+            await StationModel.create({ name: 'Station A', status: 'active', capacity: 5, device_count: 1, lon: 0, lat: 0 });
+            await StationModel.create({ name: 'Station B', status: 'active', capacity: 2, device_count: 2, lon: 1, lat: 1 });
+        });
+
+        it('should return only stations that are not at full capacity', async () => {
+            const res = await request(app)
+                .get('/api/station/available')
+                .set('Authorization', `Bearer ${userToken}`);
+
+            expect(res.status).toBe(200);
+            expect(Array.isArray(res.body)).toBe(true);
+
+            expect(res.body.length).toBe(1);
+            expect(res.body[0].name).toBe('Station A');
         });
     });
 });

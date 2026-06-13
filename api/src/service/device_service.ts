@@ -1,7 +1,7 @@
-import DeviceModel from "../schema/device_schema";
-import StationModel from "../schema/station_schema";
-import UserModel from "../schema/user_schema";
-import HistoryService from "../service/history_service";
+import DeviceModel from '../schema/device_schema';
+import StationModel from '../schema/station_schema';
+import UserModel from '../schema/user_schema';
+import HistoryService from '../service/history_service';
 
 class DeviceService {
     private historyService: HistoryService;
@@ -51,33 +51,32 @@ class DeviceService {
     }
 
     public async getAvailableDevicesByStation(stationId: string) {
-      return await DeviceModel.find({
-        current_binding: stationId,
-        binding_type: 'station',
-        status: 'available'
-      });
-    };
+        return await DeviceModel.find({
+            current_binding: stationId,
+            binding_type: 'station',
+            status: 'available'
+        });
+    }
 
     public async rentDevice(deviceId: string, userId: string): Promise<void> {
-        const device = await DeviceModel.findById(deviceId);
-        if (!device || device.binding_type !== 'station') throw new Error('Device not available');
-
         const user = await UserModel.findById(userId);
         if (!user) throw new Error('User not found');
         if (user.active_device) throw new Error('User already has an active rental');
 
+        const device = await DeviceModel.findOneAndUpdate(
+            { _id: deviceId, binding_type: 'station', status: 'available' },
+            { status: 'in_use', binding_type: 'user', current_binding: userId },
+            { new: false }
+        );
+        if (!device) throw new Error('Device not available');
+
         const originalStationId = device.current_binding;
 
-        const station = await StationModel.findById(device.current_binding);
+        const station = await StationModel.findById(originalStationId);
         if (station) {
             station.device_count = Math.max(0, station.device_count - 1);
             await station.save();
         }
-
-        device.current_binding = userId as any;
-        device.binding_type = 'user';
-        device.status = 'in_use';
-        await device.save();
 
         user.active_device = device._id as any;
         await user.save();
@@ -116,7 +115,6 @@ class DeviceService {
         device.status = 'available';
         await device.save();
 
-
         await this.historyService.logEvent({
             userId: user ? user._id : userId,
             username: user ? user.username : 'Unknown User',
@@ -134,7 +132,6 @@ class DeviceService {
             current_binding: userId,
             binding_type: 'user',
         });
-
     }
 
     public async deleteDevice(deviceId: string): Promise<void> {
@@ -146,6 +143,12 @@ class DeviceService {
             if (station) {
                 station.device_count = Math.max(0, station.device_count - 1);
                 await station.save();
+            }
+        } else if (device.binding_type === 'user') {
+            const user = await UserModel.findById(device.current_binding);
+            if (user) {
+                user.active_device = null as any;
+                await user.save();
             }
         }
 

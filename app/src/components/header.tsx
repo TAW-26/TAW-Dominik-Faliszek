@@ -23,14 +23,12 @@ export default function Header() {
       </div>
 
       <div className="header-right">
-        {/* User-specific buttons */}
         {user?.role === 'user' && (
           <button className="btn-secondary" onClick={() => setHistoryOpen(true)}>
             Moja Historia
           </button>
         )}
 
-        {/* Admin-specific buttons */}
         {user?.role === 'admin' && (
           <nav className="admin-nav">
             <Link to="/admin/stations" className="nav-link">Stacje</Link>
