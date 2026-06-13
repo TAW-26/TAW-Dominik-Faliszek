@@ -1,3 +1,8 @@
 /.idea
 **/node_modules
 **/.env
+*.exe
+**/monitoring/loki-data/
+**/monitoring/positions.yaml
+**/logs
+**/data
