@@ -124,7 +124,7 @@ export default function MapComponent() {
         <StationDetails
           station={selectedStation}
           devices={devices}
-          onDeviceClick={(d) => { setSelectedDevice(d); setDeviceModalOpen(true); }}
+          onDeviceClick={(d) => { setSelectedDevice(d as Device); setDeviceModalOpen(true); }}
           onReturnClick={returnDevice}
           hasActiveRental={!!activeRental}
         />

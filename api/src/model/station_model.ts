@@ -3,6 +3,6 @@ export interface StationData {
     status: string;
     capacity: number;
     device_count: number;
-    lon: float;
-    lat: float;
+    lon: number;
+    lat: number;
 }
