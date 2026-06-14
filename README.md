@@ -65,6 +65,10 @@ Uruchomienie (do wyboru):
 - Tryb Produkcyjny: `npm run build` następnie `npm start`
 
 ### Krok 2: Konfiguracja Aplikacji Klienckiej (Frontend)
+Skonfiguruj środowisko(opcjonalne - google auth): Skopiuj plik `.env.example` do pliku `.env`.
+- dodaj `Identywikator klienta Oauth` na stronie `https://console.cloud.google.com/apis/credentials`
+- wejdź w stworzonego klienta i dodaj adres fronendu do `Autoryzowane źródła JavaScriptu`
+- uzupełnij `.env` o `Identyfikator klienta`, znajdujący się na tej samje stronie
 
 W nowym oknie terminala przejdź do katalogu frontendu i zainstaluj pakiety:
 `cd app`
