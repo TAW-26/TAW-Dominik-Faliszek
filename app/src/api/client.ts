@@ -1,5 +1,4 @@
 import { config } from './../config';
-const BASE_URL = 'http://localhost:3100';
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem('jwt_token');
@@ -12,8 +11,26 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${config.databaseURL}${endpoint}`, { ...options, headers });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message || 'API request failed');
+    let errorData: any = {};
+    try {
+      errorData = await response.json();
+    } catch (e) {
+      // Ignore
+    }
+
+    const isAuthEndpoint = endpoint.includes('/login') || endpoint.includes('/register') || endpoint.includes('/oauth');
+
+    if (response.status === 401 && !isAuthEndpoint) {
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user_data');
+      window.location.href = '/';
+      return Promise.reject(new Error('Session expired.'));
+    }
+    const errorMessage = errorData.message
+      || errorData.error
+      || (response.status === 401 && isAuthEndpoint ? 'Nieprawidłowy login lub hasło.' : 'API request failed');
+
+    throw new Error(errorMessage);
   }
 
   return response.json();

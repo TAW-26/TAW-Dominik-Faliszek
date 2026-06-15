@@ -9,5 +9,9 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
       'Cross-Origin-Embedder-Policy': 'unsafe-none',
     }
+  },
+  preview: {
+    port: 5173,
+    strictPort: true,
   }
 })

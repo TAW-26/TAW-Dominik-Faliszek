@@ -115,7 +115,6 @@ const handleOAuthSuccess = async (credentialResponse: CredentialResponse) => {
           <GoogleLogin
             onSuccess={handleOAuthSuccess}
             onError={() => setError('Logowanie Google nie powiodło się')}
-            useOneTap
           />
         </div>
 
